@@ -11,7 +11,7 @@ longpoll = VkLongPoll(vk_session)
 
 # Отправка текста
 def text(id, text):
-    button = open('keyboard_first.json', encoding='utf-8').read()
+    button = open('keyboard_first.json').read()
     vk.messages.send(user_id=id, message=text, keyboard=button, random_id=randrange(10 ** 7))
 
 
