@@ -13,6 +13,7 @@ class Candidates(Base):
     city: so.Mapped[str] = so.mapped_column(sa.String(40), index=True)
     age: so.Mapped[int]
     gender: so.Mapped[str] = so.mapped_column(sa.String(10), index=True)
+    vk_id: so.Mapped[int] = so.mapped_column(unique=True, nullable=False)
     vk_url: so.Mapped[str] = so.mapped_column(sa.String(200), index=True, unique=True, nullable=False)
 
     def __str__(self):
@@ -22,8 +23,8 @@ class Candidates(Base):
 class Photos(Base):
     __tablename__ = "photos"
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    candidate_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("candidates.id"), nullable=False)
-    photo_url: so.Mapped[str] = so.mapped_column(sa.String(200), index=True, unique=True, nullable=False)
+    candidate_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("candidates.vk_id"), nullable=False)
+    photo_url: so.Mapped[str] = so.mapped_column(sa.String(1000), index=True, nullable=False)
     cand: so.Mapped['Candidates'] = so.relationship(backref='photos')
     def __str__(self):
         return f"{self.id}: {self.candidate_id} {self.photo_url} "
@@ -43,7 +44,6 @@ def create_tables(engine):
     Base.metadata.create_all(engine)
 
 class VK:
-
    def __init__(self, access_token, user_id, version='5.131'):
        self.token = access_token
        self.id = user_id
@@ -52,13 +52,26 @@ class VK:
 
    def users_info(self):
        url = 'https://api.vk.com/method/users.get'
-       params = {'user_ids': self.id}
+       params = {'user_ids': self.id, 'fields': 'city, sex, bdate'}
        response = requests.get(url, params={**self.params, **params})
        return response.json()
 
-   def get_candidates(self, hometown, gender, age):
+   def get_candidates(self, city, gender, age):
        url = 'https://api.vk.com/method/users.search'
-       params = {'count': 5, 'fields': 'city, sex, bdate', 'hometown': hometown, 'sex': gender, 'age_from': (age-10), 'age_to': (age+10)}
+       params = {'count': 10, 'fields': 'city, sex, bdate', 'city': city, 'sex': gender, 'age_from': (age-10), 'age_to': (age+10)}
        resp = requests.get(url, params={**self.params, **params})
        return resp.json()
 
+class VK_Client:
+    API_BASE_URL = 'https://api.vk.com/method'
+    def __init__(self, token, user_id):
+        self.token = token
+        self.user_id = user_id
+    def get_params(self):
+        return {'access_token': self.token, 'v': '5.131'}
+    def get_photos(self):
+        params = self.get_params()
+        params.update({'owner_id': self.user_id, "extended": 1})
+        resp = requests.get(f'{self.API_BASE_URL}/photos.getAll', params=params).json()
+        # pprint(resp)
+        return resp
