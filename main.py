@@ -19,7 +19,11 @@ from urllib.parse import urlencode
 # params = {'client_id': '51780516', 'redirect_uri': 'https://oauth.vk.com/blank.html', 'display': 'page', 'scope': 65536, 'response_type': 'token', 'v':'5.131', 'state': '123456'}
 # auth_url = f'{Oauth_Base_url}?{urlencode(params)}'
 # print(auth_url)
-
+# Получение токена для фотографий
+# Oauth_Base_url = 'https://oauth.vk.com/authorize'
+# params = {'client_id': '51722110', 'redirect_uri': 'https://oauth.vk.com/blank.html', 'display': 'page', 'scope': 'photos', 'response_type': 'token', 'v':'5.131', 'state': '123456'}
+# auth_url = f'{Oauth_Base_url}?{urlencode(params)}'
+# print(auth_url)
 
 access_token = open("token").read()
 #user_id = 'id815147892'
@@ -47,6 +51,7 @@ data_for_db = vk.get_candidates(town, gender, age)['response']['items']
 #pprint(data_for_db)
 Session = sessionmaker(bind=engine)
 session = Session()
+token1 = open('token1').read()
 for el in data_for_db:
     el.setdefault('city', {'id': None, 'title': ''})
     el.setdefault('bdate', '')
@@ -56,16 +61,6 @@ for el in data_for_db:
     #print(el['city']['title'])
     cand = Candidates(name=el['first_name'], fam_name=el['last_name'], city=el['city']['title'], age=(2023-int(el['bdate'].split('.')[2])), gender=el['sex'], vk_id=el['id'], vk_url=f"https://vk.com/id{el['id']}")
     session.add(cand)
-session.commit()
-
-
-# Получение токена для фотографий
-# Oauth_Base_url = 'https://oauth.vk.com/authorize'
-# params = {'client_id': '51722110', 'redirect_uri': 'https://oauth.vk.com/blank.html', 'display': 'page', 'scope': 'photos', 'response_type': 'token', 'v':'5.131', 'state': '123456'}
-# auth_url = f'{Oauth_Base_url}?{urlencode(params)}'
-# print(auth_url)
-token1 = open('token1').read()
-for el in data_for_db:
     vk_klient = VK_Client(token1, el['id'])
     try:
         dict = vk_klient.get_photos()['response']['items']
@@ -73,25 +68,25 @@ for el in data_for_db:
     # except: KeyError:
     except Exception as e:
         print(e)
-    dict2={}
+    dict2 = {}
     for elem in dict:
-        a=elem['likes']['count']
+        a = elem['likes']['count']
         dict2[a] = elem['sizes'][1]['url']
     sp_photos = sorted(dict2.items(), reverse=True)
     # pprint(sp_photos)
-    if len(sp_photos)>=3:
+    if len(sp_photos) >= 3:
         photo = Photos(candidate_id=el['id'], photo_url=sp_photos[0][1])
         session.add(photo)
         photo = Photos(candidate_id=el['id'], photo_url=sp_photos[1][1])
         session.add(photo)
         photo = Photos(candidate_id=el['id'], photo_url=sp_photos[2][1])
         session.add(photo)
-    elif len(sp_photos)==2:
+    elif len(sp_photos) == 2:
         photo = Photos(candidate_id=el['id'], photo_url=sp_photos[0][1])
         session.add(photo)
         photo = Photos(candidate_id=el['id'], photo_url=sp_photos[1][1])
         session.add(photo)
-    elif len(sp_photos)==1:
+    elif len(sp_photos) == 1:
         photo = Photos(candidate_id=el['id'], photo_url=sp_photos[0][1])
         session.add(photo)
 

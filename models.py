@@ -58,7 +58,7 @@ class VK:
 
    def get_candidates(self, city, gender, age):
        url = 'https://api.vk.com/method/users.search'
-       params = {'count': 10, 'fields': 'city, sex, bdate', 'city': city, 'sex': gender, 'age_from': (age-10), 'age_to': (age+10)}
+       params = {'count': 4, 'fields': 'city, sex, bdate', 'city': city, 'sex': gender, 'age_from': (age-10), 'age_to': (age+10)}
        resp = requests.get(url, params={**self.params, **params})
        return resp.json()
 
