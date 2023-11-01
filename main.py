@@ -59,36 +59,36 @@ pprint(data_for_db)
 for el in data_for_db:
     #print(f"https://vk.com/id{el['id']}")
     #print(el['city']['title'])
-    cand = Candidates(name=el['first_name'], fam_name=el['last_name'], city=el['city']['title'], age=(2023-int(el['bdate'].split('.')[2])), gender=el['sex'], vk_id=el['id'], vk_url=f"https://vk.com/id{el['id']}")
-    session.add(cand)
-    vk_klient = VK_Client(token1, el['id'])
-    try:
-        dict = vk_klient.get_photos()['response']['items']
-        # pprint(dict)
-    # except: KeyError:
-    except Exception as e:
-        print(e)
-    dict2 = {}
-    for elem in dict:
-        a = elem['likes']['count']
-        dict2[a] = elem['sizes'][1]['url']
-    sp_photos = sorted(dict2.items(), reverse=True)
-    # pprint(sp_photos)
-    if len(sp_photos) >= 3:
-        photo = Photos(candidate_id=el['id'], photo_url=sp_photos[0][1])
-        session.add(photo)
-        photo = Photos(candidate_id=el['id'], photo_url=sp_photos[1][1])
-        session.add(photo)
-        photo = Photos(candidate_id=el['id'], photo_url=sp_photos[2][1])
-        session.add(photo)
-    elif len(sp_photos) == 2:
-        photo = Photos(candidate_id=el['id'], photo_url=sp_photos[0][1])
-        session.add(photo)
-        photo = Photos(candidate_id=el['id'], photo_url=sp_photos[1][1])
-        session.add(photo)
-    elif len(sp_photos) == 1:
-        photo = Photos(candidate_id=el['id'], photo_url=sp_photos[0][1])
-        session.add(photo)
-
+    if el['is_closed'] == False:
+        cand = Candidates(name=el['first_name'], fam_name=el['last_name'], city=el['city']['title'], age=(2023-int(el['bdate'].split('.')[2])), gender=el['sex'], vk_id=el['id'], vk_url=f"https://vk.com/id{el['id']}")
+        session.add(cand)
+        vk_klient = VK_Client(token1, el['id'])
+        try:
+            dict = vk_klient.get_photos()['response']['items']
+            # pprint(dict)
+        # except: KeyError:
+        except Exception as e:
+            print(e)
+        dict2 = {}
+        for elem in dict:
+            a = elem['likes']['count']
+            dict2[a] = elem['sizes'][1]['url']
+        sp_photos = sorted(dict2.items(), reverse=True)
+        # pprint(sp_photos)
+        if len(sp_photos) >= 3:
+            photo = Photos(candidate_id=el['id'], photo_url=sp_photos[0][1])
+            session.add(photo)
+            photo = Photos(candidate_id=el['id'], photo_url=sp_photos[1][1])
+            session.add(photo)
+            photo = Photos(candidate_id=el['id'], photo_url=sp_photos[2][1])
+            session.add(photo)
+        elif len(sp_photos) == 2:
+            photo = Photos(candidate_id=el['id'], photo_url=sp_photos[0][1])
+            session.add(photo)
+            photo = Photos(candidate_id=el['id'], photo_url=sp_photos[1][1])
+            session.add(photo)
+        elif len(sp_photos) == 1:
+            photo = Photos(candidate_id=el['id'], photo_url=sp_photos[0][1])
+            session.add(photo)
 session.commit()
 session.close()

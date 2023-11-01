@@ -24,7 +24,7 @@ class Photos(Base):
     __tablename__ = "photos"
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     candidate_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("candidates.vk_id"), nullable=False)
-    photo_url: so.Mapped[str] = so.mapped_column(sa.String(1000), index=True, nullable=False)
+    photo_url: so.Mapped[str] = so.mapped_column(sa.String(1000), index=True, unique=True, nullable=False)
     cand: so.Mapped['Candidates'] = so.relationship(backref='photos')
     def __str__(self):
         return f"{self.id}: {self.candidate_id} {self.photo_url} "
@@ -58,7 +58,7 @@ class VK:
 
    def get_candidates(self, city, gender, age):
        url = 'https://api.vk.com/method/users.search'
-       params = {'count': 4, 'fields': 'city, sex, bdate', 'city': city, 'sex': gender, 'age_from': (age-10), 'age_to': (age+10)}
+       params = {'count': 10, 'fields': 'city, sex, bdate', 'city': city, 'sex': gender, 'age_from': (age-10), 'age_to': (age+10)}
        resp = requests.get(url, params={**self.params, **params})
        return resp.json()
 
