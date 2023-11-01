@@ -1,47 +1,39 @@
-from pprint import pprint
-from urllib.parse import urlencode
-from vk_api.keyboard import VkKeyboard, VkKeyboardColor, MAX_BUTTONS_ON_LINE, VkKeyboardButton
-import requests
-from vk_api.utils import sjson_dumps
-
-from Team_project.main import search
-
-token_bot = open("token2").read()
-
-id_bot = 223245358
-
 from random import randrange
 import vk_api
-from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+from vk_api.longpoll import VkLongPoll, VkEventType
 
-vk = vk_api.VkApi(token=token_bot)
-longpoll = VkBotLongPoll(vk, id_bot)
-
-
-def write_msg(user_id, message):
-    button = open('keyboard_first.json').read() # это кнопка, для отправки в сообщении
-    vk.method('messages.send', # вид метода
-              {'user_id': user_id, # идентификатор пользователя, без него отправить сообщение не возможно
-               'message': message, # само сообщение
-               'keyboard': button, # это кнопки, передается в формате json, его тоже отправлю на гит
-               'random_id': randrange(10 ** 7), }) # это уникальность сообщения, для защиты , что бы много сообщений не было
+photo = 'photo602776567_457239019'
+token_bot = open("token2").read()
+vk_session = vk_api.VkApi(token=token_bot)
+vk = vk_session.get_api()
+longpoll = VkLongPoll(vk_session)
 
 
-for event in longpoll.listen(): # прослушиваем чат
-    if event.type == VkBotEventType.MESSAGE_NEW: # ожидаем нового сообщения
-        request = event.message['text'] # забираем текст сообщения
-        if request == "привет":
-            result = vk.method('users.get', # получаем информацию о пользователе
-                               {
-                                   'user_ids': event.message['from_id'],
-                                   'fields': 'screen_name',
-                               })
-            write_msg(event.message['from_id'], f"Хай, {result[0]['first_name']} {result[0]['last_name']}") # отправка сообщения
-        elif request == "пока":
-            write_msg(event.message['from_id'], "Пока((")
-        elif request == 'Найти пару':
-            write_msg(event.message['from_id'], f"Ищу")
-            # а вот здесь должен быть наш код))
-        else:
-            write_msg(event.message['from_id'], "Не поняла вашего ответа...")
+# Отправка текста
+def text(id, text):
+    button = open('keyboard_first.json').read()
+    vk.messages.send(user_id=id, message=text, keyboard=button, random_id=randrange(10 ** 7))
 
+
+# Отправка фото
+def url(id, url):
+    vk.messages.send(user_id=id, attachment=url, random_id=randrange(10 ** 7))
+
+
+for event in longpoll.listen():
+    if event.type == VkEventType.MESSAGE_NEW:
+        if event.to_me:
+
+            request = event.text.lower()
+            user_id = event.user_id
+
+            # Используем первую функцию:
+            if request == 'привет':
+                result = vk.users.get(user_ids=event.user_id, fields='screen_name')
+                text(user_id, f'Приввет {result[0]["first_name"]}')
+            # Первая функция + вторая
+            elif request == 'как':
+                text(user_id, 'Вот так')
+                url(user_id, photo)
+            else:
+                print('[ + ]')
